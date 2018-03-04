@@ -1,0 +1,239 @@
+#!/usr/bin/env bash
+# ================================================================
+# -*- mode: bash -*-
+# vi: set ft=sh
+# ****************************************************************
+#
+# DESCRIPTION
+#    Project configurator for publishing React componenets
+#
+# Syntax (see SYNTAX below)
+#
+# ----------------------------------------------------------------
+# IMPLEMENTATION
+#    version         script 0.0.4
+#    author          Greg Milligan
+#    copyright       Copyright (c) 2017 http://www.xybersolve.com
+#    license         GNU General Public License
+#
+# ================================================================
+#  DEBUG OPTION
+#    set -n  # Uncomment to check your syntax, without execution.
+#    set -x  # Uncomment to debug this shell script
+#
+# ---------------------------------------------------------------
+#
+# TODO:
+# ****************************************************************
+
+
+# ---------------------------------------
+# CONFIGFURATION
+# ---------------------------------------
+# strict environment
+set -o errexit  # exit on command error status
+set -o nounset  # no unreadonlyd variables
+set -o pipefail # failr on pipe failures
+trap 'echo "Aborting due to errexit on line $LINENO. Exit code: ${?}" >&2' ERR
+
+# ---------------------------------------
+# GLOBAL VARIABLES
+# ---------------------------------------
+# booleans
+declare -ir TRUE=1
+declare -ir FALSE=0
+# script info
+
+declare -r PROGNAME="$(basename ${0})"
+declare -r VERSION=0.0.1
+declare -r SUBJECT=""
+declare -r KEYS=""
+declare -ri MIN_ARG_COUNT=1
+declare -r SYNTAX=$(cat <<EOF
+
+    Script: ${PROGNAME}
+    Usage: ${PROGNAME} [options]
+
+    Options:
+      -h|--help:  help and usage
+      -v| --version: show version info
+      --project=[project name]
+
+      --bump=[major, minor or patch]
+      --publish=[major, minor or patch]
+
+    Examples:
+      ${PROGNAME} --project='my_component' --open
+
+      ${PROGNAME} --bump=patch --publish
+      ${PROGNAME} --publish=patch
+
+EOF
+)
+# files & directories
+declare -r SCRIPT_DIR="$( dirname ${0} )"
+declare -r FILES_DIR="${SCRIPT_DIR}/files"
+
+# actions
+declare -i MAKE_PROJECT=${FALSE}
+declare -i PUBLISH=${FALSE}
+declare -i BUMP=${FALSE}
+declare -i OPEN=${FALSE}
+
+# script globals
+declare PROJECT_DIR=''
+declare PROJECT_NAME=''
+declare BUMP_WHAT=''
+
+# ---------------------------------------
+# COMMON FUNCTIONS
+# ---------------------------------------
+usage() {
+  echo "${SYNTAX}"
+}
+
+error() {
+  printf "\n%s\n" "Error: ${1}"
+}
+
+die() {
+  error "${1}"
+  usage
+  printf "\n\n"
+  exit "${2:-1}"
+}
+
+show_version() {
+  printf "\n\n%s  %s\n\n\n" "${PROGNAME}" "${VERSION}"
+  exit 0
+}
+
+show_help() {
+  printf "\n\n"
+  usage
+  printf "\n\n"
+  exit 0
+}
+
+# ---------------------------------------
+# MAIN CODE
+# ---------------------------------------
+__make_project() {
+  __validate
+  __create_directories
+  __copy_files
+  #__install_modules
+}
+__validate() {
+  [[ -z "${PROJECT_NAME}" ]] && die "No project name was specified" 2
+  [[ -d ./${PROJECT_NAME} ]] && dir "Component project: ${PROJECT_NAME} already exists" 4
+}
+
+__create_directories() {
+  mkdir -p ./${PROJECT_NAME}
+  cd "./${PROJECT_NAME}"
+  PROJECT_DIR=$(pwd)
+}
+
+__copy_files() {
+  cd "./${PROJECT_NAME}"
+  cp -r ${FILES_DIR}/ "${PROJECT_DIR}"
+}
+
+__open() {
+  # [[ -n "${EDITOR}" ]] \
+  #   && open "${EDITOR}" . \
+  #   || die "Couldn't find default editor, define it in EDITOR variable" 5
+  ( which atom >/dev/null ) && atom .
+}
+
+
+__install_modules() {
+  local -a dev_modules=(
+    "babel-cli"
+    "babel-core"
+    "babel-eslint"
+    "babel-loader"
+    "babel-preset-env"
+    "babel-preset-es2015"
+    "babel-preset-react"
+    "babel-preset-stage-2"
+    "clean-webpack-plugin"
+    "eslint"
+    "eslint-config-airbnb"
+    "eslint-formatter-pretty"
+    "eslint-loader"
+    "eslint-plugin-import"
+    "eslint-plugin-jsx-a11y"
+    "eslint-plugin-react"
+    "file-loader"
+    "uglifyjs-webpack-plugin"
+    "webpack"
+    "webpack-cli"
+  )
+
+  local -a prod_modules=(
+    "prop-types"
+    "react"
+  )
+
+  npm i -S "${prod_modules[@]}"
+  npm i -D "${dev_modules[@]}"
+}
+
+__publish() {
+  npm publish
+}
+
+__bump() {
+  [[ -z "${BUMP_WHAT}" ]] && die "major, minor or patch must be specified." 3
+  npm version ${BUMP_WHAT}
+}
+
+__get_opts() {
+  while (( $# > 0 )); do
+    local arg="${1}"; shift;
+    case ${arg} in
+      --help)    show_help ;;
+      --version) show_version ;;
+      --bump*)
+        BUMP=${TRUE}
+        [[${arg} =~ '=' ]] && BUMP_WHAT="${arg#*=}"
+        ;;
+      --publish*)
+        PUBLISH=${TRUE}
+        # if publish includes BUMP semver, then do version bump
+        if [[ ${arg} =~ '=' ]]; then
+          BUMP=${TRUE}
+          BUMP_WHAT="${arg#*=}"
+        fi
+        ;;
+      --project*) # --option=argument
+        MAKE_PROJECT=${TRUE}
+        [[ ${arg} =~ '=' ]] && PROJECT_NAME="${arg#*=}"
+        ;;
+      --open)
+        OPEN=${TRUE} ;;
+      *) die "Unknown option: ${arg}" ;;
+   esac
+  done
+  return 0
+}
+
+__dispatch() {
+  (( MAKE_PROJECT )) && __make_project
+  (( BUMP )) && __bump
+  (( PUBLISH )) && __publish
+  (( OPEN )) && __open
+  return 0
+}
+
+main() {
+  (( ${#} < MIN_ARG_COUNT )) && error "err message here" 1
+  (( $# > 0 )) && __get_opts "$@"
+
+  __dispatch
+
+  return 0
+}
+(( ${#} > 0 )) && main "${@}" || main

@@ -12,7 +12,9 @@ to npmjs.org registry.
 
 ## Proviso
 This script doesn't provide end-to-end publishing abilities. It assumes that you have already
-setup publishing on npmjs.org and also have the local client setup to do so.  
+setup publishing on npmjs.org and also have the local client setup to do so.
+
+# Usage
 
 ```sh
 $ cd /my/main/component/folder
@@ -25,7 +27,7 @@ $ mkreact-component --publish --bump=patch
 $ mkreact-component --publish=patch
 
 ```
-# Open in Atom
+### Open in Atom
 I choose to edit bash using Atom. So, the `--open` flag targets Atom as the editor.
 If it suits your needs, change that up or use the `EDITOR` variable.
 

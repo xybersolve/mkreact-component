@@ -141,12 +141,9 @@ __copy_files() {
 }
 
 __open() {
-  # [[ -n "${EDITOR}" ]] \
-  #   && open "${EDITOR}" . \
-  #   || die "Couldn't find default editor, define it in EDITOR variable" 5
-  ( which atom >/dev/null ) && atom .
+  local editor='atom';
+  ( which ${editor} >/dev/null ) && $editor .
 }
-
 
 __install_modules() {
   local -a dev_modules=(

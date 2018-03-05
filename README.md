@@ -21,6 +21,9 @@ $ mkreact-component --publish --bump=patch
 $ mkreact-component --publish=patch
 
 ```
+# Open in Atom
+I choose to edit bash using Atom. So, the `--open` flag targets Atom as the editor.
+If it suits your needs, change that up or use the `EDITOR` variable.
 
 # Install
 
@@ -30,6 +33,8 @@ $ mkreact-component --publish=patch
 cd ~/bin
 
 $ git clone https://github.com/xybersolve/mkreact-component.git
+ - or -
+$ git clone git@github.com:xybersolve/mkreact-component.git
 
 ```
 Include it in your PATH, so that it is available, wherever you are creating

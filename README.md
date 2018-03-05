@@ -3,17 +3,16 @@
 > React component configuration & publish helper script
 
 ## Purpose
-Much of the busy work associated with building web components, is setting up a
+Much of the busy work associated with building web components is setting up a
 consistent working environments with the bells and whistles just the way we want.
 
-This script basically insures I get what I am I expecting each time I build
+This script basically insures I get what I am expecting each time I build
 a React component. Additionally it provides some features to speed up publishing
 to npmjs.org registry.
 
 #### Proviso
 This script doesn't provide end-to-end publishing abilities. It assumes that you have already
 setup publishing on npmjs.org and also have the local client setup to do so.
-
 
 ## Usage
 
@@ -29,8 +28,9 @@ $ mkreact-component --publish=patch
 
 ```
 #### Open in Atom
-I choose to edit bash using Atom. So, the `--open` flag targets Atom as the editor.
-If it suits your needs, change that up or use the `EDITOR` variable.
+I choose to edit React components using Atom.
+So, the `--open` flag targets Atom as the editor. If it suits your needs,
+change that up or use the `EDITOR` variable.
 
 ## Install
 
